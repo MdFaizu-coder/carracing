@@ -1,0 +1,8 @@
+{
+  "name": "Tech Event Car Racing Challenge",
+  "description": "AMC college department of data science presents single-player 10-lap time trial racing competition platform with anti-cheat validation, live leaderboard, and organizer admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
