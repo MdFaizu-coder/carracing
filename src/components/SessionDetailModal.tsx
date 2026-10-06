@@ -126,6 +126,34 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     }
   };
 
+  const handleRemoveTeam = async () => {
+    if (!sessionId || !confirm('Remove this team and all of its stored race data? This cannot be undone.')) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/admin/remove-team', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({
+          sessionId,
+          reason: 'Removed by event organizer from admin panel'
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setActionMsg(data.message || 'Team removed successfully.');
+        onActionComplete();
+        onClose();
+      } else {
+        setActionMsg(data.error || 'Failed to remove team.');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleValidateFlagged = async () => {
     if (!sessionId) return;
     setActionLoading(true);
@@ -275,6 +303,15 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Authorize Rerun</span>
+                </button>
+
+                <button
+                  onClick={handleRemoveTeam}
+                  disabled={actionLoading}
+                  className="px-3 py-2 bg-rose-700/20 text-rose-300 border border-rose-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5"
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  <span>Remove Team</span>
                 </button>
 
                 {session.status !== 'DISQUALIFIED' && (

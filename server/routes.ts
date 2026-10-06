@@ -693,6 +693,71 @@ apiRouter.post('/admin/disqualify', requireAdmin, async (req: Request, res: Resp
   }
 });
 
+// Admin Remove Team and all related data
+apiRouter.post('/admin/remove-team', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const db = await getDatabase();
+    const { sessionId, reason } = req.body;
+    const admin = (req as any).admin;
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'sessionId is required.' });
+    }
+
+    const session = queryOne<{ participant_id: string; team_name: string }>(
+      db,
+      `SELECT s.participant_id, p.team_name
+       FROM race_sessions s
+       JOIN participants p ON p.id = s.participant_id
+       WHERE s.id = ?`,
+      [sessionId]
+    );
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found.' });
+    }
+
+    runQuery(
+      db,
+      'DELETE FROM race_events WHERE race_session_id IN (SELECT id FROM race_sessions WHERE participant_id = ?)',
+      [session.participant_id]
+    );
+
+    runQuery(
+      db,
+      'DELETE FROM race_sessions WHERE participant_id = ?',
+      [session.participant_id]
+    );
+
+    runQuery(
+      db,
+      'DELETE FROM participants WHERE id = ?',
+      [session.participant_id]
+    );
+
+    const actionId = crypto.randomUUID();
+    const now = new Date().toISOString();
+    runQuery(
+      db,
+      `INSERT INTO admin_actions (id, admin_id, admin_username, action, target_id, details, timestamp)
+       VALUES (?, ?, ?, 'REMOVE_TEAM', ?, ?, ?)`,
+      [
+        actionId,
+        admin.adminId,
+        admin.username,
+        sessionId,
+        JSON.stringify({ teamName: session.team_name, reason: reason || 'Removed by organizer' }),
+        now
+      ]
+    );
+
+    res.json({ success: true, message: 'Team removed successfully.' });
+  } catch (err: any) {
+    console.error('Remove team error:', err);
+    res.status(500).json({ error: 'Failed to remove team.' });
+  }
+});
+
 // Admin Approve Rerun
 apiRouter.post('/admin/approve-rerun', requireAdmin, async (req: Request, res: Response) => {
   try {
