@@ -17,7 +17,7 @@ export default function App() {
 
   const [eventConfig, setEventConfig] = useState<EventConfig>({
     eventName: 'Tech Event Car Racing Challenge',
-    department: 'Department of Computer Science & Engineering',
+    department: 'Department of Computer Science and Data Science',
     targetLaps: 10,
     penaltySecondsPerHit: 3,
     minLapSeconds: 8,
