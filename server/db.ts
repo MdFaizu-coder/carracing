@@ -126,6 +126,12 @@ function initSchema(db: Database) {
       updated_at TEXT NOT NULL
     );
   `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      name TEXT PRIMARY KEY,
+      applied_at TEXT NOT NULL
+    );
+  `);
 
   // Indexes for high concurrency
   db.run(`CREATE INDEX IF NOT EXISTS idx_sessions_participant ON race_sessions(participant_id);`);
@@ -156,10 +162,10 @@ function initSchema(db: Database) {
   // Seed default event settings if not set
   const defaultSettings: Record<string, string> = {
     event_name: 'Tech Event Car Racing Challenge',
-    department: 'Department of Computer Science & Engineering',
-    target_laps: '10',
+    department: 'Department of Computer Science and Data Science',
+    target_laps: '20',
     penalty_seconds_per_hit: '3',
-    min_lap_seconds: '8', // Anti-cheat: 1 lap under 8s is physically impossible on this circuit
+    min_lap_seconds: '4', // Keep the threshold below the minimum lap time at maximum speed.
     registration_open: 'true',
     leaderboard_public: 'true',
     competition_status: 'ACTIVE' // ACTIVE, PAUSED, FINALIZED
@@ -171,6 +177,32 @@ function initSchema(db: Database) {
     if (check.length === 0 || check[0].values.length === 0) {
       db.run(`INSERT INTO event_settings (key, value, updated_at) VALUES (?, ?, ?)`, [k, v, now]);
     }
+  }
+
+  const lapSettingsMigration = db.exec(
+    "SELECT name FROM schema_migrations WHERE name = 'twenty-lap-race-settings'"
+  );
+  if (lapSettingsMigration.length === 0 || lapSettingsMigration[0].values.length === 0) {
+    db.run("UPDATE event_settings SET value = '20', updated_at = ? WHERE key = 'target_laps'", [now]);
+    db.run("UPDATE event_settings SET value = '4', updated_at = ? WHERE key = 'min_lap_seconds' AND value = '8'", [now]);
+    db.run(
+      'INSERT INTO schema_migrations (name, applied_at) VALUES (?, ?)',
+      ['twenty-lap-race-settings', now]
+    );
+  }
+
+  const departmentMigration = db.exec(
+    "SELECT name FROM schema_migrations WHERE name = 'computer-science-data-science-department'"
+  );
+  if (departmentMigration.length === 0 || departmentMigration[0].values.length === 0) {
+    db.run(
+      "UPDATE event_settings SET value = 'Department of Computer Science and Data Science', updated_at = ? WHERE key = 'department'",
+      [now]
+    );
+    db.run(
+      'INSERT INTO schema_migrations (name, applied_at) VALUES (?, ?)',
+      ['computer-science-data-science-department', now]
+    );
   }
 
   // Ensure default benchmark teams are completely removed as requested

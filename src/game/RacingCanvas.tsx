@@ -197,58 +197,72 @@ export const RacingCanvas: React.FC<RacingCanvasProps> = ({
     ctx.fillStyle = '#1c222c';
     ctx.fillRect(0, 0, w, h);
 
-    // Concrete curb texture grooves
+    // Concrete curb texture grooves follow the bends at each point on the road.
     ctx.strokeStyle = '#141a22';
     ctx.lineWidth = 2;
     const curbStep = 24;
     const curbOffset = (engine.roadOffset * 0.7) % curbStep;
     for (let y = -curbStep + curbOffset; y < h + curbStep; y += curbStep) {
-      // Left sidewalk grooves
+      const curveOffset = engine.getRoadCurveOffset(y);
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(engine.ROAD_LEFT, y);
+      ctx.lineTo(engine.ROAD_LEFT + curveOffset, y);
       ctx.stroke();
 
-      // Right sidewalk grooves
       ctx.beginPath();
-      ctx.moveTo(engine.ROAD_RIGHT, y);
+      ctx.moveTo(engine.ROAD_RIGHT + curveOffset, y);
       ctx.lineTo(w, y);
       ctx.stroke();
     }
 
     // 2. Asphalt Highway Road Surface (Deep asphalt slate)
     ctx.fillStyle = '#262d35';
-    ctx.fillRect(engine.ROAD_LEFT, 0, engine.ROAD_W, h);
+    ctx.beginPath();
+    ctx.moveTo(engine.ROAD_LEFT + engine.getRoadCurveOffset(0), 0);
+    ctx.lineTo(engine.ROAD_RIGHT + engine.getRoadCurveOffset(0), 0);
+    for (let y = 20; y < h; y += 20) {
+      const curveOffset = engine.getRoadCurveOffset(y);
+      ctx.lineTo(engine.ROAD_RIGHT + curveOffset, y);
+    }
+    ctx.lineTo(engine.ROAD_RIGHT + engine.getRoadCurveOffset(h), h);
+    ctx.lineTo(engine.ROAD_LEFT + engine.getRoadCurveOffset(h), h);
+    for (let y = h - 20; y > 0; y -= 20) {
+      ctx.lineTo(engine.ROAD_LEFT + engine.getRoadCurveOffset(y), y);
+    }
+    ctx.closePath();
+    ctx.fill();
 
     // Subtle asphalt grain texture
     ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
     for (let i = 0; i < 40; i++) {
-      const rx = engine.ROAD_LEFT + ((i * 37) % engine.ROAD_W);
       const ry = ((i * 59 + engine.roadOffset * 2) % h);
+      const rx = engine.ROAD_LEFT + engine.getRoadCurveOffset(ry) + ((i * 37) % engine.ROAD_W);
       ctx.fillRect(rx, ry, 3, 3);
     }
 
     // 3. Outer Road Boundary Lines (Solid Yellow Lines)
     ctx.strokeStyle = '#eab308'; // Bright Highway Yellow
     ctx.lineWidth = 4;
-    // Left Yellow line
-    ctx.beginPath();
-    ctx.moveTo(engine.ROAD_LEFT + 2, 0);
-    ctx.lineTo(engine.ROAD_LEFT + 2, h);
-    ctx.stroke();
-    // Right Yellow line
-    ctx.beginPath();
-    ctx.moveTo(engine.ROAD_RIGHT - 2, 0);
-    ctx.lineTo(engine.ROAD_RIGHT - 2, h);
-    ctx.stroke();
+    for (const edge of [engine.ROAD_LEFT + 2, engine.ROAD_RIGHT - 2]) {
+      ctx.beginPath();
+      ctx.moveTo(edge + engine.getRoadCurveOffset(0), 0);
+      for (let y = 20; y < h; y += 20) {
+        ctx.lineTo(edge + engine.getRoadCurveOffset(y), y);
+      }
+      ctx.lineTo(edge + engine.getRoadCurveOffset(h), h);
+      ctx.stroke();
+    }
 
     // 4. Center White Solid Divider Line (matching user image!)
     const centerX = w / 2;
     ctx.strokeStyle = '#f8fafc';
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(centerX, 0);
-    ctx.lineTo(centerX, h);
+    ctx.moveTo(centerX + engine.getRoadCurveOffset(0), 0);
+    for (let y = 20; y < h; y += 20) {
+      ctx.lineTo(centerX + engine.getRoadCurveOffset(y), y);
+    }
+    ctx.lineTo(centerX + engine.getRoadCurveOffset(h), h);
     ctx.stroke();
 
     // 5. White Dashed Lane Dividers
@@ -259,33 +273,38 @@ export const RacingCanvas: React.FC<RacingCanvasProps> = ({
     ctx.setLineDash([dashLength, dashGap]);
     ctx.lineDashOffset = -engine.roadOffset;
 
-    // Divider between lane 0 and 1
-    const div1X = engine.ROAD_LEFT + engine.LANE_W;
-    ctx.beginPath();
-    ctx.moveTo(div1X, 0);
-    ctx.lineTo(div1X, h);
-    ctx.stroke();
-
-    // Divider between lane 2 and 3
-    const div3X = engine.ROAD_LEFT + engine.LANE_W * 3;
-    ctx.beginPath();
-    ctx.moveTo(div3X, 0);
-    ctx.lineTo(div3X, h);
-    ctx.stroke();
+    for (const dividerX of [
+      engine.ROAD_LEFT + engine.LANE_W,
+      engine.ROAD_LEFT + engine.LANE_W * 3
+    ]) {
+      ctx.beginPath();
+      ctx.moveTo(dividerX + engine.getRoadCurveOffset(0), 0);
+      for (let y = 20; y < h; y += 20) {
+        ctx.lineTo(dividerX + engine.getRoadCurveOffset(y), y);
+      }
+      ctx.lineTo(dividerX + engine.getRoadCurveOffset(h), h);
+      ctx.stroke();
+    }
 
     ctx.setLineDash([]); // Reset line dash
 
     // 6. Checkered Lap Banner (Start / Finish line)
     for (const banner of engine.lapBanners) {
       if (banner.y > -80 && banner.y < h + 80) {
+        ctx.save();
+        ctx.translate(engine.getRoadCurveOffset(banner.y), 0);
         drawCheckeredBanner(ctx, banner.y, engine);
+        ctx.restore();
       }
     }
 
     // 7. Oil Slicks
     for (const obs of engine.obstacles) {
       if (obs.type === 'OIL_SLICK' && obs.y > -60 && obs.y < h + 60) {
+        ctx.save();
+        ctx.translate(engine.getRoadCurveOffset(obs.y), 0);
         drawOilSlick(ctx, obs);
+        ctx.restore();
       }
     }
 
@@ -293,9 +312,15 @@ export const RacingCanvas: React.FC<RacingCanvasProps> = ({
     for (const obs of engine.obstacles) {
       if (obs.type !== 'OIL_SLICK' && obs.y > -60 && obs.y < h + 60) {
         if (obs.type === 'CONE') {
+          ctx.save();
+          ctx.translate(engine.getRoadCurveOffset(obs.y), 0);
           drawCone(ctx, obs.x, obs.y, obs.width);
+          ctx.restore();
         } else if (obs.type === 'BARRIER') {
+          ctx.save();
+          ctx.translate(engine.getRoadCurveOffset(obs.y), 0);
           drawBarrier(ctx, obs.x, obs.y, obs.width, obs.height);
+          ctx.restore();
         }
       }
     }
@@ -303,7 +328,10 @@ export const RacingCanvas: React.FC<RacingCanvasProps> = ({
     // 9. Traffic Cars
     for (const traffic of engine.traffic) {
       if (traffic.y > -100 && traffic.y < h + 100) {
+        ctx.save();
+        ctx.translate(engine.getRoadCurveOffset(traffic.y), 0);
         drawTrafficCar(ctx, traffic);
+        ctx.restore();
       }
     }
 
@@ -319,7 +347,10 @@ export const RacingCanvas: React.FC<RacingCanvasProps> = ({
     ctx.globalAlpha = 1.0;
 
     // 11. Red Player Sports Car (matching user image!)
+    ctx.save();
+    ctx.translate(engine.getRoadCurveOffset(engine.player.y), 0);
     drawPlayerCar(ctx, engine.player);
+    ctx.restore();
 
     // 12. Big Arcade Lap Counter (Top Center, exactly matching the screenshot!)
     drawArcadeLapNumber(ctx, w, engine.state.currentLap);

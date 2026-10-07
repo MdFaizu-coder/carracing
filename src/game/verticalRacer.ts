@@ -1,6 +1,6 @@
 // Vertical Highway Racing Engine
 // Matches user reference: vertical multi-lane highway, red sports car, traffic cars, cones, barriers, oil slicks,
-// big arcade lap counter, pause button, and 10-lap time trial system.
+// big arcade lap counter, pause button, and 20-lap time trial system.
 
 export interface PlayerCar {
   x: number;          // lateral position (pixels from road center)
@@ -87,6 +87,7 @@ export class VerticalRacerEngine {
   public lapBanners: LapBanner[] = [];
 
   public roadOffset: number = 0;
+  public roadDistance: number = 0;
   public screenShake: number = 0;
 
   // Road configuration for 4-lane highway
@@ -101,7 +102,7 @@ export class VerticalRacerEngine {
   private hitCooldown: number = 0;
   private spawnTimer: number = 0;
 
-  constructor(targetLaps: number = 10, penaltyPerHitSec: number = 3) {
+  constructor(targetLaps: number = 20, penaltyPerHitSec: number = 3) {
     this.LANE_W = this.ROAD_W / this.NUM_LANES;
     this.ROAD_LEFT = (this.CANVAS_W - this.ROAD_W) / 2;
     this.ROAD_RIGHT = this.ROAD_LEFT + this.ROAD_W;
@@ -126,7 +127,7 @@ export class VerticalRacerEngine {
       oilSlideDir: 0
     };
 
-    const lapDistance = 1800; // Units of road scroll per lap
+    const lapDistance = 3600; // Units of road scroll per lap (2x current distance)
 
     this.state = {
       currentLap: 1,
@@ -155,6 +156,12 @@ export class VerticalRacerEngine {
 
   public getLaneCenterX(laneIndex: number): number {
     return this.ROAD_LEFT + (laneIndex + 0.5) * this.LANE_W;
+  }
+
+  public getRoadCurveOffset(y: number): number {
+    const curveAtY = Math.sin((this.roadDistance + (this.player.y - y) * 1.2) / 1800);
+    const curveAtPlayer = Math.sin(this.roadDistance / 1800);
+    return (curveAtY - curveAtPlayer) * 56;
   }
 
   public update(
@@ -241,6 +248,7 @@ export class VerticalRacerEngine {
 
     // 3. Road & Banner Scrolling
     this.roadOffset = (this.roadOffset + this.player.speed) % 80;
+    this.roadDistance += this.player.speed;
 
     // Advance lap distance
     this.state.lapDistanceRemaining -= this.player.speed;
@@ -259,7 +267,7 @@ export class VerticalRacerEngine {
 
     // 4. Traffic & Obstacles Spawning & Scrolling
     this.spawnTimer += this.player.speed;
-    if (this.spawnTimer > 180) {
+    if (this.spawnTimer > 145) {
       this.spawnTimer = 0;
       this.spawnHazard();
     }
@@ -353,7 +361,7 @@ export class VerticalRacerEngine {
     if (hasOverlap) return;
 
     const roll = Math.random();
-    if (roll < 0.45) {
+    if (roll < 0.35) {
       // Spawn traffic car
       const colors: ('blue' | 'yellow' | 'green' | 'purple' | 'silver')[] = [
         'blue', 'yellow', 'green', 'purple', 'silver'
@@ -369,7 +377,7 @@ export class VerticalRacerEngine {
         color: colors[Math.floor(Math.random() * colors.length)],
         active: true
       });
-    } else if (roll < 0.75) {
+    } else if (roll < 0.70) {
       // Spawn road cone
       this.obstacles.push({
         id: 'c_' + Math.random().toString(36).slice(2, 7),

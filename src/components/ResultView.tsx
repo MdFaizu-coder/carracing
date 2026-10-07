@@ -5,11 +5,13 @@ import { RaceFinishResult } from '../types';
 
 interface ResultViewProps {
   result: RaceFinishResult;
+  targetLaps: number;
   onViewLeaderboard: () => void;
 }
 
 export const ResultView: React.FC<ResultViewProps> = ({
   result,
+  targetLaps,
   onViewLeaderboard
 }) => {
   useEffect(() => {
@@ -49,7 +51,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
   const copyResultText = () => {
     const text = `🏁 Tech Event Car Racing Challenge Result
 Team: ${result.teamName}
-Laps: ${result.lapsCompleted}/10
+Laps: ${result.lapsCompleted}/${targetLaps}
 Race Time: ${formatMs(result.raceTimeMs)}
 Penalties: +${result.penaltyTimeMs / 1000}s
 Official Final Time: ${formatMs(result.finalTimeMs)}
@@ -90,7 +92,7 @@ Status: ${result.resultStatus}`;
             <div className="sm:text-right">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">COMPLETED DISTANCE</span>
               <div className="text-lg font-mono font-black text-white">
-                {result.lapsCompleted} / 10 LAPS
+                {result.lapsCompleted} / {targetLaps} LAPS
               </div>
             </div>
           </div>
@@ -153,7 +155,7 @@ Status: ${result.resultStatus}`;
           <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 mb-6">
             <div className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2.5 flex items-center justify-between">
               <span>Lap Telemetry Breakdown</span>
-              <span className="text-[10px] text-slate-500 font-normal">All 10 Laps Completed</span>
+              <span className="text-[10px] text-slate-500 font-normal">All {targetLaps} Laps Completed</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
               {result.lapSplits.map((split, i) => (

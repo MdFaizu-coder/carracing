@@ -5,6 +5,7 @@ import { soundManager } from '../audio/soundManager';
 interface NavbarProps {
   currentView: 'LANDING' | 'READY' | 'GAME' | 'RESULT' | 'LEADERBOARD' | 'ADMIN';
   onNavigate: (view: 'LANDING' | 'LEADERBOARD' | 'ADMIN') => void;
+  targetLaps: number;
   competitionStatus?: string;
   isAdminLoggedIn: boolean;
 }
@@ -12,6 +13,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   currentView,
   onNavigate,
+  targetLaps,
   competitionStatus = 'ACTIVE',
   isAdminLoggedIn
 }) => {
@@ -43,7 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
             <div className="text-[11px] text-slate-400 font-medium hidden sm:block">
-              College Department Tech Event • 10-Lap Time Trial
+              College Department Tech Event • {targetLaps}-Lap Time Trial
             </div>
           </div>
         </div>

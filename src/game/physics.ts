@@ -83,7 +83,7 @@ export class CarPhysicsEngine {
   private readonly OFF_TRACK_FRICTION = 0.92;
   private readonly DRIFT_FRICTION = 0.955;
 
-  constructor(targetLaps: number = 10, penaltyPerHitSec: number = 3) {
+  constructor(targetLaps: number = 20, penaltyPerHitSec: number = 3) {
     // Starting grid: behind start/finish line (x: 280, y: 800) facing right (angle: 0)
     this.car = {
       x: 280,

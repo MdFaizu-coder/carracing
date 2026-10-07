@@ -18,9 +18,9 @@ export default function App() {
   const [eventConfig, setEventConfig] = useState<EventConfig>({
     eventName: 'Tech Event Car Racing Challenge',
     department: 'Department of Computer Science and Data Science',
-    targetLaps: 10,
+    targetLaps: 20,
     penaltySecondsPerHit: 3,
-    minLapSeconds: 8,
+    minLapSeconds: 4,
     registrationOpen: true,
     leaderboardPublic: true,
     competitionStatus: 'ACTIVE'
@@ -93,7 +93,7 @@ export default function App() {
           sessionToken: data.sessionToken,
           teamName: data.teamName,
           department: data.department,
-          targetLaps: 10,
+          targetLaps: 20,
           status: 'READY'
         });
         setCurrentView('READY');
@@ -168,6 +168,7 @@ export default function App() {
       <Navbar
         currentView={currentView}
         onNavigate={handleNavClick}
+        targetLaps={eventConfig.targetLaps}
         competitionStatus={eventConfig.competitionStatus}
         isAdminLoggedIn={Boolean(adminToken)}
       />
@@ -203,6 +204,7 @@ export default function App() {
         {currentView === 'RESULT' && raceResult && (
           <ResultView
             result={raceResult}
+            targetLaps={eventConfig.targetLaps}
             onViewLeaderboard={() => setCurrentView('LEADERBOARD')}
           />
         )}

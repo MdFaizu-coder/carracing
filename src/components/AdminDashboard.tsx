@@ -417,7 +417,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="number"
                   min={1}
                   max={25}
-                  value={eventSettings.targetLaps || 10}
+                  value={eventSettings.targetLaps || 20}
                   onChange={(e) => setEventSettings({ ...eventSettings, targetLaps: parseInt(e.target.value, 10) })}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
                 />
@@ -445,7 +445,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="number"
                   min={5}
                   max={20}
-                  value={eventSettings.minLapSeconds || 8}
+                  value={eventSettings.minLapSeconds || 4}
                   onChange={(e) => setEventSettings({ ...eventSettings, minLapSeconds: parseInt(e.target.value, 10) })}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
                 />

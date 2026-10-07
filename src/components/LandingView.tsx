@@ -38,7 +38,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
           <p className="max-w-2xl text-slate-300 text-base sm:text-lg leading-relaxed mb-8">
             The official collegiate single-player time-trial motorsport challenge. Master the apexes,
-            avoid precision obstacles, and lay down your fastest 10-lap campaign with server-verified anti-cheat telemetry.
+            avoid precision obstacles, and lay down your fastest {config.targetLaps}-lap campaign with server-verified anti-cheat telemetry.
           </p>
 
           {/* Core Action Buttons */}
@@ -80,7 +80,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               Official Distance
             </div>
             <p className="text-xs text-slate-400 leading-normal">
-              High-speed multi-lane highway time trial. Complete all 10 laps while dodging traffic cars and obstacles.
+              High-speed multi-lane highway time trial. Complete all {config.targetLaps} laps while dodging traffic cars and obstacles.
             </p>
           </div>
 

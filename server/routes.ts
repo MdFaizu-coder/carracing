@@ -42,10 +42,10 @@ apiRouter.get('/event-config', async (req: Request, res: Response) => {
 
     res.json({
       eventName: config['event_name'] || 'Tech Event Car Racing Challenge',
-      department: config['department'] || 'Department of Computer Science & Engineering',
-      targetLaps: parseInt(config['target_laps'] || '10', 10),
+      department: config['department'] || 'Department of Computer Science and Data Science',
+      targetLaps: parseInt(config['target_laps'] || '20', 10),
       penaltySecondsPerHit: parseInt(config['penalty_seconds_per_hit'] || '3', 10),
-      minLapSeconds: parseInt(config['min_lap_seconds'] || '8', 10),
+      minLapSeconds: parseInt(config['min_lap_seconds'] || '4', 10),
       registrationOpen: config['registration_open'] === 'true',
       leaderboardPublic: config['leaderboard_public'] === 'true',
       competitionStatus: config['competition_status'] || 'ACTIVE',
@@ -258,10 +258,10 @@ apiRouter.post('/race/finish', async (req: Request, res: Response) => {
 
     // Retrieve settings
     const targetLapsSetting = queryOne(db, "SELECT value FROM event_settings WHERE key = 'target_laps'");
-    const targetLaps = parseInt(targetLapsSetting?.value || '10', 10);
+    const targetLaps = parseInt(targetLapsSetting?.value || '20', 10);
 
     const minLapSecondsSetting = queryOne(db, "SELECT value FROM event_settings WHERE key = 'min_lap_seconds'");
-    const minLapSeconds = parseInt(minLapSecondsSetting?.value || '8', 10);
+    const minLapSeconds = parseInt(minLapSecondsSetting?.value || '4', 10);
 
     const penaltySecSetting = queryOne(db, "SELECT value FROM event_settings WHERE key = 'penalty_seconds_per_hit'");
     const penaltySecPerHit = parseInt(penaltySecSetting?.value || '3', 10);
